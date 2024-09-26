@@ -24,8 +24,8 @@ def convert_excel_to_sqlite():
             'Transaction ID', 'Created Date', 'Name', 'Carrier Name', 
             'Policy Number', 'Amount', 'State'], dtype={'Amount': str})  # Read Amount as string
         
-        # Strip any extra spaces and keep Amount as a string
-        df['Amount'] = df['Amount'].astype(str).apply(lambda x: x.strip())
+        # Store Amount in $ .00 format
+        df['Amount'] = df['Amount'].apply(lambda x: "${:,.2f}".format(float(x.replace('$', '').replace(',', '').strip())) if pd.notnull(x) else x)
         
         # Convert to SQLite
         df.to_sql("records", conn, if_exists="replace", index=False)
@@ -33,21 +33,12 @@ def convert_excel_to_sqlite():
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred: {str(e)}")
 
-# Function to normalize the amount (remove $ and convert to float with 2 decimal places)
-def normalize_amount(amount_str):
-    try:
-        # Remove any $ or commas, convert to float, and format as .00
-        amount_value = float(amount_str.replace('$', '').replace(',', '').strip())
-        return "{:.2f}".format(amount_value)
-    except ValueError:
-        return None
-
 # Function to filter records from SQLite (triggered by a button)
 def filter_records():
     name_filter = name_entry.get().strip()
     pol_filter = pol_entry.get().strip()
-    amount_filter = amount_entry.get().strip()
-
+    amount_filter = amount_entry.get().strip()  # Do not remove $ or commas, use as entered
+    
     query = "SELECT * FROM records WHERE 1=1"  # Base query
     params = []
 
@@ -70,14 +61,9 @@ def filter_records():
 
     # Apply amount filter
     if amount_filter:
-        # Normalize the input to ensure it's in .00 format for querying
-        normalized_amount = normalize_amount(amount_filter)
-        if normalized_amount:
-            query += " AND Amount = ?"
-            params.append(normalized_amount)
-        else:
-            messagebox.showerror("Error", "Invalid amount format. Please enter a valid $ .00 amount.")
-            return  # Stop the query if the amount is invalid
+        # Match the stored $ .00 format exactly
+        query += " AND Amount = ?"
+        params.append(amount_filter)
 
     try:
         cursor.execute(query, params)
@@ -86,24 +72,15 @@ def filter_records():
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred while filtering: {str(e)}")
 
-# Function to format Amount as currency and display records in Treeview
+# Function to display records in Treeview
 def display_records(rows):
     # Clear existing rows
     for i in tree.get_children():
         tree.delete(i)
     
-    # Insert new rows, formatting the Amount field as a currency
+    # Insert new rows without modifying Amount (it is already formatted in the database)
     for row in rows:
-        # Convert the Amount column (index 5) to a currency format
-        formatted_row = list(row)
-        try:
-            amount_value = float(formatted_row[5].replace('$', '').replace(',', '').strip())  # Convert to float
-            formatted_row[5] = "${:,.2f}".format(amount_value)  # Format as $ .00
-        except ValueError:
-            formatted_row[5] = row[5]  # If there's a parsing issue, keep the original value
-
-        # Insert the formatted row into the Treeview
-        tree.insert("", "end", values=formatted_row)
+        tree.insert("", "end", values=row)
 
 # Function to copy only the Transaction ID (assuming TID is in the 1st column)
 def on_tree_click(event):
