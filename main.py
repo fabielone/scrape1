@@ -11,5 +11,5 @@ if __name__ == '__main__':
     )
     scrape_thread.start()
 
-    # Start the GUI
+    # Start the GUIs
     main_gui()

@@ -1,24 +1,45 @@
-# excel/excel_handler.py
-
 import pandas as pd
+import sqlite3
 import os
-from config import settings
 
-def load_excel_data(file_path):
-    if os.path.exists(file_path):
+def excel_to_sqlite(file_path, db_path):
+    """Convert an Excel file to an SQLite database, replacing the old database."""
+    try:
+        # Delete the old database if it exists
+        if os.path.exists(db_path):
+            os.remove(db_path)
+
+        # Load the Excel file
         df = pd.read_excel(file_path)
-        return df
-    else:
-        return pd.DataFrame()
+        
+        # Create a connection to the SQLite database
+        conn = sqlite3.connect(db_path)
+        
+        # Save the DataFrame to SQLite
+        df.to_sql('records', conn, if_exists='replace', index=False)
+        
+        conn.close()
+        print("Excel file successfully converted to SQLite.")
+    
+    except Exception as e:
+        print(f"Error converting Excel to SQLite: {e}")
 
-def add_to_excel(data, reason):
-    df = pd.DataFrame([{
-        'Name': data['name'],
-        'Policy Number': data['policy_number'],
-        'Amount': data['amount'],
-        'Reason': reason
-    }])
-    if os.path.exists(settings.RED_RECORDS_FILE):
-        existing_df = pd.read_excel(settings.RED_RECORDS_FILE)
-        df = pd.concat([existing_df, df], ignore_index=True)
-    df.to_excel(settings.RED_RECORDS_FILE, index=False)
+def filter_records_by_amount_sqlite(db_path, amount):
+    """Query the SQLite database to retrieve records by amount."""
+    try:
+        # Clean the amount to remove the dollar sign and extra spaces
+        amount = float(amount.replace('$', '').strip())
+        
+        # Create a connection to the SQLite database
+        conn = sqlite3.connect(db_path)
+
+        # Query the database for matching records
+        query = f"SELECT * FROM records WHERE Amount = {amount}"
+        df = pd.read_sql_query(query, conn)
+
+        conn.close()
+        return df
+
+    except Exception as e:
+        print(f"Error querying SQLite database: {e}")
+        return pd.DataFrame()
