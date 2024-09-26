@@ -179,7 +179,6 @@ def main_gui():
             data_vars['amount'].set(current_data['amount'])
         root.after(100, check_for_new_data)
 
-    check_for_new_data()
     root.mainloop()
 
 # Helper functions for green and red button clicks

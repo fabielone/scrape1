@@ -6,10 +6,10 @@ from gui.main_gui import main_gui
 
 if __name__ == '__main__':
     # Start the scraping thread
-    scrape_thread = threading.Thread(
-        target=scraping_thread_function, daemon=True
-    )
-    scrape_thread.start()
+    # scrape_thread = threading.Thread(
+    #     target=scraping_thread_function, daemon=True
+    # )
+    # scrape_thread.start()
 
     # Start the GUIs
     main_gui()
