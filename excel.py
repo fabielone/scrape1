@@ -24,19 +24,22 @@ def convert_excel_to_sqlite():
             'Transaction ID', 'Created Date', 'Name', 'Carrier Name', 
             'Policy Number', 'Amount', 'State'], dtype={'Amount': str})  # Read Amount as string
         
+        # Strip any extra spaces and make sure Amount is formatted as a string
+        df['Amount'] = df['Amount'].astype(str).apply(lambda x: x.strip())
+        
         # Convert to SQLite
         df.to_sql("records", conn, if_exists="replace", index=False)
         messagebox.showinfo("Success", "Excel file has been successfully converted to SQLite database.")
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred: {str(e)}")
 
-# Function to filter records from SQLite
+# Function to filter records from SQLite (triggered by a button)
 def filter_records():
     name_filter = name_entry.get().strip()
     pol_filter = pol_entry.get().strip()
     amount_filter = amount_entry.get().strip()
 
-    query = "SELECT * FROM records WHERE 1=1"
+    query = "SELECT * FROM records WHERE 1=1"  # Base query
     params = []
 
     # Apply name filter (AND/OR logic)
@@ -117,10 +120,9 @@ tk.Label(filter_frame, text="Amount:").grid(row=0, column=4, padx=5)
 amount_entry = tk.Entry(filter_frame)
 amount_entry.grid(row=0, column=5, padx=5)
 
-# Bind events to automatically trigger the filtering when fields change
-name_entry.bind("<KeyRelease>", lambda e: filter_records())
-pol_entry.bind("<KeyRelease>", lambda e: filter_records())
-amount_entry.bind("<KeyRelease>", lambda e: filter_records())
+# Button to trigger the filtering action
+search_button = tk.Button(filter_frame, text="Search", command=filter_records)
+search_button.grid(row=0, column=6, padx=10)
 
 # Create Treeview to display records (Transaction ID, Created Date, Name, Carrier Name, Policy Number, Amount, State)
 tree_frame = tk.Frame(root)
