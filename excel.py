@@ -33,8 +33,8 @@ def convert_excel_to_sqlite():
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred: {str(e)}")
 
-# Function to filter records from SQLite (triggered by a button)
-def filter_records():
+# Function to filter records from SQLite (triggered by a button or enter)
+def filter_records(event=None):
     name_filter = name_entry.get().strip()
     pol_filter = pol_entry.get().strip()
     amount_filter = amount_entry.get().strip()  # Do not remove $ or commas, use as entered
@@ -96,8 +96,22 @@ def on_tree_click(event):
         root.clipboard_append(transaction_id)
         messagebox.showinfo("Copied", f"Transaction ID copied to clipboard: {transaction_id}")
 
+# Function to handle clicking the amount field: clear, paste clipboard content, and search
+def on_amount_click(event):
+    # Clear the amount entry field
+    amount_entry.delete(0, tk.END)
+    
+    # Get the clipboard content
+    clipboard_content = root.clipboard_get()
+    
+    # Paste clipboard content into the entry field
+    amount_entry.insert(0, clipboard_content)
+    
+    # Automatically trigger the search
+    filter_records()
+
 # Function to clear filters and reset Treeview
-def clear_filters():
+def clear_filters(event=None):
     name_entry.delete(0, tk.END)
     pol_entry.delete(0, tk.END)
     amount_entry.delete(0, tk.END)
@@ -138,6 +152,16 @@ amount_entry.grid(row=0, column=6, padx=5)
 # Button to trigger the filtering action
 search_button = tk.Button(filter_frame, text="Search", command=filter_records)
 search_button.grid(row=0, column=7, padx=10)
+
+# Bind Enter key for name and policy fields to search function
+name_entry.bind("<Return>", filter_records)
+pol_entry.bind("<Return>", filter_records)
+
+# Bind Esc key to clear filters
+root.bind("<Escape>", clear_filters)
+
+# Bind click event to amount field to clear, paste clipboard, and search
+amount_entry.bind("<Button-1>", on_amount_click)
 
 # Create Treeview to display records (Transaction ID, Created Date, Name, Carrier Name, Policy Number, Amount, State)
 tree_frame = tk.Frame(root)
