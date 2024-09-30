@@ -94,7 +94,7 @@ def on_tree_click(event):
         # Copy Transaction ID to clipboard
         root.clipboard_clear()
         root.clipboard_append(transaction_id)
-        messagebox.showinfo("Copied", f"Transaction ID copied to clipboard: {transaction_id}")
+        
 
 # Function to handle clicking the amount field: clear, paste clipboard content, and search
 def on_amount_click(event):
