@@ -110,6 +110,23 @@ def on_amount_click(event):
     # Automatically trigger the search
     filter_records()
 
+# Function to clear, paste clipboard content, and trigger search for the right-click event
+def on_right_click(event):
+    # Get the widget that triggered the event (could be name_entry or pol_entry)
+    entry_widget = event.widget
+    
+    # Clear the entry field
+    entry_widget.delete(0, tk.END)
+    
+    # Get the clipboard content
+    clipboard_content = root.clipboard_get()
+    
+    # Paste clipboard content into the entry field
+    entry_widget.insert(0, clipboard_content)
+    
+    # Automatically trigger the search
+    filter_records()
+
 # Function to clear filters and reset Treeview
 def clear_filters(event=None):
     name_entry.delete(0, tk.END)
@@ -156,6 +173,11 @@ search_button.grid(row=0, column=7, padx=10)
 # Bind Enter key for name and policy fields to search function
 name_entry.bind("<Return>", filter_records)
 pol_entry.bind("<Return>", filter_records)
+
+# Bind right-click event to name and policy fields for clipboard paste and search
+name_entry.bind("<Button-3>", on_right_click)
+pol_entry.bind("<Button-3>", on_right_click)
+
 
 # Bind Esc key to clear filters
 root.bind("<Escape>", clear_filters)
